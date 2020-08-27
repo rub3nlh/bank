@@ -1,0 +1,50 @@
+{
+    "name": "sabadell",
+    "version": "1.0.0",
+    "description": "",
+    "main": "sabadell.js",
+    "scripts": {
+        "start": "babel-node src/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "babel": {
+        "presets": [
+            [
+                "@babel/preset-env",
+                {
+                    "targets": {
+                        "node": "current"
+                    }
+                }
+            ]
+        ],
+        "plugins": [
+            [
+                "module-resolver",
+                {
+                    "root": [
+                        "./src"
+                    ]
+                }
+            ]
+        ]
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@babel/cli": "^7.10.5",
+        "@babel/core": "^7.11.1",
+        "@babel/node": "^7.10.5",
+        "@babel/polyfill": "^7.10.4",
+        "@babel/preset-env": "^7.11.0",
+        "@babel/register": "^7.10.5",
+        "@babel/runtime": "^7.11.2",
+        "babel-plugin-module-resolver": "^4.0.0"
+    },
+    "dependencies": {
+        "axios": "^0.19.2",
+        "axios-cookiejar-support": "^1.0.0",
+        "dotenv-flow": "^3.2.0",
+        "tough-cookie-file-store": "^2.0.2"
+    }
+}
