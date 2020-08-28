@@ -26,7 +26,7 @@ function internationalTransfer() {
             name: 'Testing Prueba PRueba',
             address: 'Calle los pinos edificio123 APTO C 4 Reparto Hermanos Cruz',
             town: 'La Habana',
-            country: 'CUba'
+            country: 'CU'  // Valid country codes in src/utils/constants.js
         }
     })
 }
