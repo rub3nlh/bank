@@ -35,8 +35,12 @@ function formatAmount(amount) {
     return amount.toString().replace(/\./g, ',');
 }
 
+function parseAmount(amountText) {
+    return parseFloat(amountText.replace(',','.'))
+}
+
 function cleanIban(iban) {
     return iban.replace(/\s/g, '');
 }
 
-export {getKeyRandom, parseCookies, getXMLField, formatAmount, cleanIban};
+export {getKeyRandom, parseCookies, getXMLField, formatAmount, cleanIban, parseAmount};

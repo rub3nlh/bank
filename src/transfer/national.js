@@ -1,7 +1,7 @@
 import qs from 'querystring';
 import Aes from 'utils/AES'
 import Client from 'utils/client';
-import { getKeyRandom, parseCookies, getXMLField, formatAmount, cleanIban } from 'utils';
+import { getKeyRandom, parseCookies, getXMLField, formatAmount, cleanIban, parseAmount } from 'utils';
 import { LoginError, ValidationError } from 'exceptions';
 
 const client = Client.create({
@@ -145,9 +145,30 @@ async function createTransfer({sourceAccount, destinationAccount, amount, nif, b
     }
 
     function validateTransfer(html) {
+        function extractField(html, fieldName) {
+            try {
+                const regex = new RegExp(`${fieldName}:<\/td><td [^\>]+>([^<]+)<`);
+                const fieldMatch = html.match(regex);
+                return fieldMatch[1].trim();
+            } catch (e) {
+                throw new ValidationError(`Error in transfer validation. Field ${fieldName} couldn't be found in transfer html`);
+            }
+        }
+
+        function validateField(found, expected, fieldName) {
+            if(found !== expected) {
+                throw new ValidationError(`Error in transfer validation. [${fieldName}] expected <${expected}> found <${found}>`);
+            }
+        }
+
         // Throw error if transfer values not found in html
-        // TODO
-        return true;
+        const sourceAccountFound = extractField(html, "Cuenta origen").split('/')[0];
+        const destinationAccountFound = extractField(html, "Cuenta destino");
+        const amountFound = extractField(html, "Importe");
+
+        validateField(cleanIban(sourceAccountFound), sourceAccount, 'sourceAccount');
+        validateField(cleanIban(destinationAccountFound), destinationAccount, 'destinationAccount');
+        validateField(parseAmount(amountFound), amount, 'amount');
     }
 
     let response, data, urlEncodedData;
@@ -279,7 +300,7 @@ async function createTransfer({sourceAccount, destinationAccount, amount, nif, b
             "Content-Type": "application/x-www-form-urlencoded",
         }
     });
-    validateTransfer(response.data);
+    validateTransfer(response.data, {sourceAccount, destinationAccount, amount});
 
     data = {
         reutilizaTrans: "",
@@ -298,6 +319,13 @@ async function createTransfer({sourceAccount, destinationAccount, amount, nif, b
             "Content-Type": "application/x-www-form-urlencoded",
         }
     });
+
+    console.log(`Transfer complete:
+Source account: ${sourceAccount}
+Destination account: ${destinationAccount}
+Amount: ${amount}
+Concept: ${concept}
+`);
 }
 
 async function main({nif, password, sourceAccount, destinationAccount, amount, ...transferOptions}) {
