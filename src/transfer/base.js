@@ -6,7 +6,7 @@ import { LoginError, ValidationError } from 'exceptions';
 
 const client = Client.create({
     baseURL: 'https://www.bancsabadell.com',
-    tracePath: '/tmp/traces'
+    //tracePath: '/tmp/traces'
 });
 
 async function getBankName(iban) {
@@ -88,11 +88,18 @@ async function login(nif, password) {
             "Content-Type": "application/x-www-form-urlencoded",
         }
     });
+
+    response = await client.get('/txempbs/LoginFW.getInfo.bs', {
+        headers: {
+            "User-Agent": "XMLHTTP/1.0",
+            "Accept": "*/*",
+        }
+    });
     console.log("Login done");
     return {sid};
 }
 
-async function createTransfer({sourceAccount, destinationAccount, amount, nif, beneficiary, concept}, sid) {
+async function createNationalTransfer({sourceAccount, destinationAccount, amount, nif, beneficiary, concept}, sid) {
     function getFormFields(html) {
         const randNumberMatch = html.match(/randNumber=([-\d]+)/);
         const randNumber = randNumberMatch[1];
@@ -172,13 +179,6 @@ async function createTransfer({sourceAccount, destinationAccount, amount, nif, b
     }
 
     let response, data, urlEncodedData;
-    response = await client.get('/txempbs/LoginFW.getInfo.bs', {
-        headers: {
-            "User-Agent": "XMLHTTP/1.0",
-            "Accept": "*/*",
-        }
-    });
-
     response = await client.get('/txempbs/TRExternalTransfer.init.bs', {
         headers: {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -328,27 +328,27 @@ Concept: ${concept}
 `);
 }
 
-async function main({nif, password, sourceAccount, destinationAccount, amount, ...transferOptions}) {
-    function validate(value, name) {
-        if(!value) {
-            throw new ValidationError(`${name} was not defined`);
+async function createInternationalTransfer({sourceAccount, destinationAccount, swift, amount, nif, beneficiary, concept}, sid) {
+    throw new Error("Not implemented yet");
+
+    let response, data, urlEncodedData;
+    response = await client.get('/txempbs/TRExTransferNew2.init.bs', {
+        headers: {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         }
-    }
+    });
 
-    validate(nif, 'nif');
-    validate(password, 'password');
-    validate(sourceAccount, 'sourceAccount');
-    validate(destinationAccount, 'destinationAccount');
-    validate(amount, 'amount');
+    /*
+    https://www.bancsabadell.com/txempbs/TRExTransferNew2.AJAXCall.bs?account.accountNumber=${destinationAccount}&randNumber=${randNumber}
+    https://www.bancsabadell.com/txempbs/CUGetSender.init.bs
+    https://www.bancsabadell.com/txempbs/TRExTransferNew2.init.bs
+    https://www.bancsabadell.com/txempbs/TRExTransferNew2.password.bs
+    */
 
-    const {sid} = await login(nif, password);
-    return createTransfer({
-        sourceAccount: cleanIban(sourceAccount),
-        destinationAccount: cleanIban(destinationAccount),
-        amount,
-        nif,
-        ...transferOptions
-    }, sid);
 }
 
-export default main;
+export {
+    login,
+    createNationalTransfer,
+    createInternationalTransfer
+}

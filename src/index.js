@@ -1,7 +1,7 @@
 import example from 'example';
 
 async function main() {
-    await example.nationalTransfer();
+    await example.internationalTransfer();
 }
 
 main()
